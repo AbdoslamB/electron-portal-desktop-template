@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>App UI</title>
+    <style>
+        body {
+            margin: 0;
+            height: 34px;
+            font-family: Arial, Helvetica, sans-serif;
+            -webkit-user-select: none;
+            user-select: none;
+            background: transparent;
+        }
+
+        .titlebar {
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            height: 34px;
+            background: #fff;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            -webkit-app-region: drag;
+            position: relative;
+        }
+
+        body.fullscreen-active {
+            height: 20px;
+        }
+
+        body.fullscreen-active .titlebar {
+            height: 20px;
+            padding: 0;
+            background: transparent;
+            border-bottom: none;
+        }
+
+        body.fullscreen-active .barContent {
+            display: none;
+        }
+
+        body.fullscreen-active .hot {
+            height: 20px;
+        }
+
+        .left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .menu {
+            position: relative;
+            display: inline-block;
+        }
+
+        .menu button {
+            background: transparent;
+            border: none;
+            font-size: 16px;
+            padding: 4px 6px;
+            cursor: pointer;
+            -webkit-app-region: no-drag;
+        }
+
+        .menu-dropdown {
+            position: absolute;
+            top: 34px;
+            left: 0;
+            min-width: 220px;
+            background: #fff;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border-radius: 6px;
+            overflow: hidden;
+            z-index: 1000;
+        }
+
+        .menu-item {
+            padding: 8px 12px;
+            font-size: 13px;
+            cursor: pointer;
+            -webkit-app-region: no-drag;
+        }
+
+        .menu-item:hover {
+            background: #f6f6f6;
+        }
+
+        .menu-item.active {
+            background: #e7f2ff;
+            font-weight: 600;
+        }
+
+        .icon {
+            width: 20px;
+            height: 20px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            display: inline-block;
+        }
+
+        .title {
+            font-weight: 600;
+            font-size: 13px;
+            color: #333;
+            margin-left: 6px;
+        }
+
+        .spacer {
+            flex: 1;
+        }
+
+        .controls {
+            display: flex;
+            gap: 6px;
+            -webkit-app-region: no-drag;
+        }
+
+        button {
+            height: 24px;
+            width: 36px;
+            border-radius: 4px;
+            border: none;
+            background: #f3f3f3;
+            cursor: pointer;
+            -webkit-app-region: no-drag;
+        }
+
+        button:hover {
+            background: #eaeaea;
+        }
+
+        .site-label {
+            font-size: 12px;
+            color: #666;
+            margin-left: 8px;
+            background: #f3f7fb;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        .barContent {
+            display: flex;
+            align-items: center;
+            height: 34px;
+            cursor: grab;
+            width: 100%;
+        }
+
+        .barContent.hidden {
+            transform: translateY(-34px);
+            transition: transform 200ms ease-out;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        .barContent:active {
+            cursor: grabbing;
+        }
+
+        .hot {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background: transparent;
+            z-index: 10000;
+            -webkit-app-region: no-drag;
+            transition: opacity 150ms ease-out;
+            opacity: 0;
+            pointer-events: auto;
+        }
+
+        .hot.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .fullscreen-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 34px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            z-index: 999;
+            transform: translateY(-100%);
+            transition: transform 200ms ease-out, opacity 200ms ease-out;
+            opacity: 0;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            pointer-events: none;
+        }
+
+        .fullscreen-overlay.visible {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .fullscreen-overlay .left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .fullscreen-overlay .title {
+            font-weight: 600;
+            font-size: 13px;
+            color: #333;
+            margin-left: 6px;
+        }
+
+        .fullscreen-overlay .controls {
+            margin-left: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="titlebar" id="titlebar">
+        <div class="barContent" id="barContent">
+            <div class="left">
+                <div class="menu">
+                    <button id="menuBtn" title="Open menu" aria-label="Open menu">☰</button>
+                </div>
+                <div class="icon" id="appIcon" style="background-image: url('build/icon.ico');"></div>
+                <div class="title" id="appTitle">Example Portal</div>
+                <div class="site-label" id="siteLabel">Example.edu</div>
+            </div>
+            <div class="spacer"></div>
+            <div class="controls">
+                <button id="minimize" title="Minimize">—</button>
+                <button id="maximize" title="Maximize">▢</button>
+                <button id="fullscreen" title="Toggle Fullscreen">⛶</button>
+                <button id="close" title="Close">✕</button>
+            </div>
+        </div>
+        <div class="hot" id="hot" title="Show controls"></div>
+        <div class="fullscreen-overlay" id="fullscreenOverlay">
+            <div class="left">
+                <div class="icon" style="background-image: url('build/icon.ico'); width: 16px; height: 16px;"></div>
+                <div class="title">Example Portal</div>
+                <div class="site-label">Full Screen</div>
+            </div>
+            <div class="controls">
+                <button id="fsMinimize" title="Minimize">—</button>
+                <button id="fsMaximize" title="Maximize">▢</button>
+                <button id="fsExitFullscreen" title="Exit Fullscreen">⛶</button>
+                <button id="fsClose" title="Close">✕</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const bodyEl = document.body;
+
+        // Handle window controls
+        document.getElementById('minimize').addEventListener('click', () => {
+            window.electronUI?.minimize();
+        });
+
+        document.getElementById('maximize').addEventListener('click', () => {
+            window.electronUI?.toggleMaximize();
+        });
+
+        document.getElementById('close').addEventListener('click', () => {
+            window.electronUI?.close();
+        });
+
+        const fsBtn = document.getElementById('fullscreen');
+        fsBtn.addEventListener('click', () => {
+            window.electronUI?.toggleFullscreen();
+        });
+
+        // Allow keyboard shortcut F12 to toggle dev tools
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'F12') {
+                window.electronUI?.toggleDevtools();
+            }
+        });
+
+        // Get query parameters
+        function getQuery() {
+            const q = location.search.replace(/^[?]/, '') || '';
+            const params = {};
+            q.split('&').forEach(part => {
+                if (!part) return;
+                const [k, v] = part.split('=');
+                params[k] = decodeURIComponent(v || '');
+            });
+            return params;
+        }
+
+        // Apply query parameters
+        const params = getQuery();
+        if (params.hideTitle === '1') {
+            document.getElementById('appTitle').style.display = 'none';
+        }
+        if (params.hideIcon === '1') {
+            document.getElementById('appIcon').style.display = 'none';
+        }
+
+        // Menu + site switcher behavior
+        const menuBtn = document.getElementById('menuBtn');
+        const menuItems = Array.from(document.querySelectorAll('.menu-item'));
+
+        menuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            window.electronUI?.openSiteMenu();
+        });
+
+        // When site switches, update the UI
+        const siteLabel = document.getElementById('siteLabel');
+        const siteNames = { support: 'Example.edu', broadcom: 'Example.net', uat: 'UAT (example.edu)' };
+        if (window.electronUI?.onSiteChanged) {
+            window.electronUI.onSiteChanged((siteKey) => {
+                menuItems.forEach(it => it.classList.toggle('active', it.getAttribute('data-key') === siteKey));
+                if (siteLabel) siteLabel.innerText = siteNames[siteKey] || siteKey;
+            });
+        }
+
+        // Fullscreen controls
+        const hot = document.getElementById('hot');
+        const overlay = document.getElementById('fullscreenOverlay');
+        const fsMinimize = document.getElementById('fsMinimize');
+        const fsMaximize = document.getElementById('fsMaximize');
+        const fsExitFullscreen = document.getElementById('fsExitFullscreen');
+        const fsClose = document.getElementById('fsClose');
+        
+        // Track mouse position and state
+        let mouseX = 0;
+        let mouseY = 0;
+        let isOverOverlay = false;
+        let hideTimer = null;
+        const HOT_ZONE_HEIGHT = 20; // actual invisible strip height to capture events
+        const HOT_ZONE_TRIGGER_HEIGHT = 1; // user must touch very top edge to reveal overlay
+        const HIDE_DELAY = 2000;
+
+        // Debug function
+        function logState(message) {
+            console.log(`[Fullscreen] ${message}`);
+        }
+
+        // Check if mouse is in hot zone
+        function isMouseInHotZone() {
+            if (!hot) return false;
+            const rect = hot.getBoundingClientRect();
+            return (
+                mouseY >= rect.top && 
+                mouseY <= rect.bottom && 
+                mouseX >= rect.left && 
+                mouseX <= rect.right
+            );
+        }
+
+        // Show the overlay
+        function showOverlay() {
+            if (!overlay) return;
+            overlay.classList.add('visible');
+            clearTimeout(hideTimer);
+        }
+
+        // Hide the overlay
+        function hideOverlay() {
+            if (!overlay) return;
+            overlay.classList.remove('visible');
+        }
+
+        // Watch the fullscreen state
+        if (window.electronUI?.onFullscreenChanged) {
+            window.electronUI.onFullscreenChanged((isFs) => {
+                fsBtn.innerText = isFs ? '🗗' : '⛶';
+                const bar = document.getElementById('barContent');
+
+                logState(`Fullscreen changed: ${isFs ? 'Entered' : 'Exited'} fullscreen`);
+
+                if (isFs) {
+                    bar.classList.add('hidden');
+                    bodyEl.classList.add('fullscreen-active');
+                    if (hot) {
+                        hot.style.display = 'block';
+                        hot.style.pointerEvents = 'auto';
+                        hot.style.zIndex = '10000';
+                    }
+                    // Show overlay briefly when entering fullscreen
+                    showOverlay();
+                    setTimeout(() => {
+                        if (!isOverOverlay && !isMouseInHotZone()) {
+                            hideOverlay();
+                        }
+                    }, 2000);
+                } else {
+                    bar.classList.remove('hidden');
+                    bodyEl.classList.remove('fullscreen-active');
+                    if (hot) {
+                        hot.style.display = 'none';
+                    }
+                    hideOverlay();
+                }
+            });
+        }
+
+        // Fullscreen overlay controls
+        if (fsMinimize) fsMinimize.addEventListener('click', () => window.electronUI?.minimize());
+        if (fsMaximize) fsMaximize.addEventListener('click', () => window.electronUI?.toggleMaximize());
+        if (fsExitFullscreen) fsExitFullscreen.addEventListener('click', () => window.electronUI?.toggleFullscreen());
+        if (fsClose) fsClose.addEventListener('click', () => window.electronUI?.close());
+
+        // Handle overlay hover
+        if (overlay) {
+            overlay.addEventListener('mouseenter', () => {
+                isOverOverlay = true;
+                clearTimeout(hideTimer);
+            });
+            
+            overlay.addEventListener('mouseleave', () => {
+                isOverOverlay = false;
+                hideTimer = setTimeout(hideOverlay, 500);
+            });
+            
+            // Prevent overlay clicks from propagating to the page below
+            overlay.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+            });
+        }
+        
+        // Hot zone behavior
+        if (hot) {
+            // Track mouse position
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                
+                const isFullscreen = fsBtn.innerText === '🗗';
+                const isNearTop = mouseY <= HOT_ZONE_TRIGGER_HEIGHT;
+                
+                if (isFullscreen && isNearTop) {
+                    showOverlay();
+                }
+            });
+
+            // Original event listeners as fallback
+            hot.addEventListener('mouseenter', (e) => {
+                if (fsBtn?.innerText === '🗗' && e.clientY <= HOT_ZONE_TRIGGER_HEIGHT) {
+                    showOverlay();
+                }
+            });
+            
+            hot.addEventListener('mouseleave', () => {
+                if (!isOverOverlay) {
+                    hideTimer = setTimeout(hideOverlay, HIDE_DELAY);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

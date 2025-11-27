@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>App UI</title>
+    <style>
+        body {
+            margin: 0;
+            height: 34px;
+            font-family: Arial, Helvetica, sans-serif;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .titlebar {
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            height: 34px;
+            background: #fff;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            -webkit-app-region: drag;
+            /* Make the titlebar draggable (frameless window) */
+            position: relative;
+        }
+
+        .left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .menu {
+            position: relative;
+            display: inline-block;
+        }
+
+        .menu button {
+            background: transparent;
+            border: none;
+            font-size: 16px;
+            padding: 4px 6px;
+            cursor: pointer;
+            -webkit-app-region: no-drag;
+            /* Button must be clickable, not draggable */
+        }
+
+        .menu-dropdown {
+            position: absolute;
+            top: 34px;
+            left: 0;
+            min-width: 220px;
+            background: #fff;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border-radius: 6px;
+            overflow: hidden;
+            z-index: 1000;
+        }
+
+        .menu-item {
+            padding: 8px 12px;
+            font-size: 13px;
+            cursor: pointer;
+            -webkit-app-region: no-drag;
+            /* menu items should not be draggable */
+        }
+
+        .menu-item:hover {
+            background: #f6f6f6;
+        }
+
+        .menu-item.active {
+            background: #e7f2ff;
+            font-weight: 600;
+        }
+
+        .icon {
+            width: 20px;
+            height: 20px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            display: inline-block;
+        }
+
+        .title {
+            font-weight: 600;
+            font-size: 13px;
+            color: #333;
+            margin-left: 6px;
+        }
+
+        .spacer {
+            flex: 1;
+        }
+
+        .controls {
+            display: flex;
+            gap: 6px;
+            -webkit-app-region: no-drag;
+            /* controls are interactive, not draggable */
+        }
+
+        button {
+            height: 24px;
+            width: 36px;
+            border-radius: 4px;
+            border: none;
+            background: #f3f3f3;
+            cursor: pointer;
+            -webkit-app-region: no-drag;
+            /* Button must be clickable */
+        }
+
+        button:hover {
+            background: #eaeaea;
+        }
+
+        .site-label {
+            font-size: 12px;
+            color: #666;
+            margin-left: 8px;
+            background: #f3f7fb;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        .barContent {
+            display: flex;
+            align-items: center;
+            height: 34px;
+            cursor: grab;
+        }
+
+        .barContent.hidden {
+            transform: translateY(-34px);
+            transition: transform 200ms ease-out;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        .barContent:active {
+            cursor: grabbing;
+        }
+
+        .hot {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 20px; /* Increased height for better interaction */
+            background: transparent;
+            z-index: 10000; /* Ensure it's above other elements */
+            -webkit-app-region: no-drag;
+            transition: opacity 150ms ease-out;
+            opacity: 0;
+            pointer-events: auto; /* Ensure it captures mouse events */
+            display: block; /* Make sure it's always visible for interaction */
+            /* background: rgba(255, 0, 0, 0.2); */ /* Uncomment for debugging */
+        }
+
+        .hot.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .fullscreen-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 34px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            z-index: 999;
+            transform: translateY(-100%);
+            transition: transform 200ms ease-out, opacity 200ms ease-out;
+            opacity: 0;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            pointer-events: none;
+        }
+
+        .fullscreen-overlay.visible {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .fullscreen-overlay .left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .fullscreen-overlay .title {
+            font-weight: 600;
+            font-size: 13px;
+            color: #333;
+            margin-left: 6px;
+        }
+
+        .fullscreen-overlay .controls {
+            margin-left: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="titlebar" id="titlebar">
+        <div class="barContent" id="barContent">
+            <div class="left">
+                <div class="menu">
+                    <button id="menuBtn" title="Open menu" aria-label="Open menu">☰</button>
+                </div>
+                <div class="icon" id="appIcon" style="background-image: url('build/icon.ico');"></div>
+                <div class="title" id="appTitle">Broadcom Support</div>
+                <div class="site-label" id="siteLabel">Support</div>
+            </div>
+            <div class="spacer"></div>
+            <div class="controls">
+                <button id="minimize" title="Minimize">—</button>
+                <button id="maximize" title="Maximize">▢</button>
+                <button id="fullscreen" title="Toggle Fullscreen">⛶</button>
+                <button id="close" title="Close">✕</button>
+            </div>
+        </div>
+        <div class="hot" id="hot" title="Show controls"></div>
+        <div class="fullscreen-overlay" id="fullscreenOverlay">
+            <div class="left">
+                <div class="icon" style="background-image: url('build/icon.ico'); width: 16px; height: 16px;"></div>
+                <div class="title">Broadcom Support</div>
+                <div class="site-label">Full Screen</div>
+            </div>
+            <div class="controls">
+                <button id="fsMinimize" title="Minimize">—</button>
+                <button id="fsMaximize" title="Maximize">▢</button>
+                <button id="fsExitFullscreen" title="Exit Fullscreen">⛶</button>
+                <button id="fsClose" title="Close">✕</button>
+            </div>
+        </div>
+        <script>
+            // Handle visibility of icon/title; if the app wants no title, hide it
+            const { windowControls } = window.electronUI || {};
+
+            document.getElementById('minimize').addEventListener('click', () => {
+                window.electronUI?.minimize();
+            });
+            document.getElementById('maximize').addEventListener('click', () => {
+                window.electronUI?.toggleMaximize();
+            });
+            document.getElementById('close').addEventListener('click', () => {
+                window.electronUI?.close();
+            });
+            document.getElementById('fullscreen').addEventListener('click', () => {
+                window.electronUI?.toggleFullscreen();
+            });
+
+            // Allow keyboard shortcut F12 to toggle dev tools
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'F12') {
+                    window.electronUI?.toggleDevtools();
+                }
+            });
+
+            // Optionally hide icon or title depending on settings passed in via query params
+            function getQuery() {
+                const q = location.search.replace(/^[?]/, '') || '';
+                const params = {};
+                q.split('&').forEach(part => {
+                    if (!part) return;
+                    const [k, v] = part.split('=');
+                    params[k] = decodeURIComponent(v || '');
+                });
+                return params;
+            }
+
+            const params = getQuery();
+            if (params.hideTitle === '1') {
+                document.getElementById('appTitle').style.display = 'none';
+            }
+            if (params.hideIcon === '1') {
+                document.getElementById('appIcon').style.display = 'none';
+            }
+
+            // Menu + site switcher behavior
+            const menuBtn = document.getElementById('menuBtn');
+            const fsBtn = document.getElementById('fullscreen');
+            const menuItems = Array.from(document.querySelectorAll('.menu-item'));
+
+            menuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // Request the main process to open the native site menu
+                window.electronUI?.openSiteMenu();
+            });
+
+            // When site switches, visually indicate active site and update the site label
+            const siteLabel = document.getElementById('siteLabel');
+            const siteNames = { support: 'Support', broadcom: 'Main', uat: 'UAT' };
+            if (window.electronUI?.onSiteChanged) {
+                window.electronUI.onSiteChanged((siteKey) => {
+                    menuItems.forEach(it => it.classList.toggle('active', it.getAttribute('data-key') === siteKey));
+                    if (siteLabel) siteLabel.innerText = siteNames[siteKey] || siteKey;
+                });
+            }
+            // Track mouse position
+            let mouseX = 0;
+            let mouseY = 0;
+
+            // Debug function to log fullscreen state
+            function logState(message) {
+                console.log(`[Fullscreen] ${message}`);
+            }
+
+            // Helper function to check if mouse is in hot zone
+            function isMouseInHotZone() {
+                if (!hot) return false;
+                const rect = hot.getBoundingClientRect();
+                return (
+                    mouseY >= rect.top && 
+                    mouseY <= rect.bottom && 
+                    mouseX >= rect.left && 
+                    mouseX <= rect.right
+                );
+            }
+
+            // Watch the fullscreen state and update button appearance
+            if (window.electronUI?.onFullscreenChanged) {
+                window.electronUI.onFullscreenChanged((isFs) => {
+                    if (!fsBtn) return;
+                    fsBtn.innerText = isFs ? '🗗' : '⛶';
+                    const overlay = document.getElementById('fullscreenOverlay');
+                    const bar = document.getElementById('barContent');
+
+                    logState(`Fullscreen changed: ${isFs ? 'Entered' : 'Exited'} fullscreen`);
+
+                    if (isFs) {
+                        bar.classList.add('hidden');
+                        if (hot) {
+                            hot.style.display = 'block';
+                            hot.style.pointerEvents = 'auto';
+                            hot.style.zIndex = '10000';
+                        }
+                        // Show overlay briefly when entering fullscreen
+                        showOverlay();
+                        setTimeout(() => {
+                            if (!isOverOverlay && !isMouseInHotZone()) {
+                                hideOverlay();
+                            }
+                        }, 2000);
+                    } else {
+                        bar.classList.remove('hidden');
+                        hideOverlay();
+                    }
+                });
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+                z-index: 999;
+                transform: translateY(-100%);
+                transition: transform 200ms ease-out, opacity 200ms ease-out;
+                opacity: 0;
+                display: flex;
+                align-items: center;
+                padding: 0 16px;
+                pointer-events: none;
+            }
+
+            .fullscreen-overlay.visible {
+                transform: translateY(0);
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            .fullscreen-overlay .left {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .fullscreen-overlay .title {
+                font-weight: 600;
+                    <div class="icon" id="appIcon" style="background-image: url('build/icon.ico');"></div>
+                    <div class="title" id="appTitle">Broadcom Support</div>
+                    <div class="site-label" id="siteLabel">Support</div>
+                </div>
+                <div class="spacer"></div>
+                <div class="controls">
+                    <button id="minimize" title="Minimize">—</button>
+                    <button id="maximize" title="Maximize">▢</button>
+                    <button id="fullscreen" title="Toggle Fullscreen">⛶</button>
+                    <button id="close" title="Close">✕</button>
+                </div>
+            </div>
+            <div class="hot" id="hot" title="Show controls"></div>
+            <div class="fullscreen-overlay" id="fullscreenOverlay">
+                <div class="left">
+                    <div class="icon" style="background-image: url('build/icon.ico'); width: 16px; height: 16px;"></div>
+                    <div class="title">Broadcom Support</div>
+                    <div class="site-label">Full Screen</div>
+                </div>
+                <div class="controls">
+                    <button id="fsMinimize" title="Minimize">—</button>
+                    <button id="fsMaximize" title="Maximize">▢</button>
+                    <button id="fsExitFullscreen" title="Exit Fullscreen">⛶</button>
+                    <button id="fsClose" title="Close">✕</button>
+                </div>
+            </div>
+            <script>
+                // Handle visibility of icon/title; if the app wants no title, hide it
+                const { windowControls } = window.electronUI || {};
+
+                document.getElementById('minimize').addEventListener('click', () => {
+                    window.electronUI?.minimize();
+            const fsClose = document.getElementById('fsClose');
+            
+            if (fsMinimize) fsMinimize.addEventListener('click', () => window.electronUI?.minimize());
+            if (fsMaximize) fsMaximize.addEventListener('click', () => window.electronUI?.toggleMaximize());
+            if (fsExitFullscreen) fsExitFullscreen.addEventListener('click', () => window.electronUI?.toggleFullscreen());
+            if (fsClose) fsClose.addEventListener('click', () => window.electronUI?.close());
+            
+            // Handle overlay hover
+            if (overlay) {
+                overlay.addEventListener('mouseenter', () => {
+                    isOverOverlay = true;
+                    clearTimeout(hideTimer);
+                });
+                
+                overlay.addEventListener('mouseleave', () => {
+                    isOverOverlay = false;
+                    hideTimer = setTimeout(hideOverlay, 500);
+                });
+                
+                // Prevent overlay clicks from propagating to the page below
+                overlay.addEventListener('mousedown', (e) => {
+                    e.stopPropagation();
+                });
+            }
+            
+            // Hot zone behavior
+            if (hot) {
+                // Add pointer events to the document to detect mouse position
+                document.addEventListener('mousemove', (e) => {
+                    if (!fsBtn) return;
+                    
+                    const isFullscreen = fsBtn.innerText === '🗗';
+                    const isNearTop = e.clientY <= HOT_ZONE_HEIGHT;
+                    
+                    if (isFullscreen && isNearTop) {
+                        hot.classList.add('visible');
+                        showOverlay();
+                        logState('Mouse near top in fullscreen');
+                    }
+                });
+
+                // Original event listeners as fallback
+                hot.addEventListener('mouseenter', (e) => {
+                    if (fsBtn?.innerText === '🗗') {
+                        logState('Mouse entered hot zone');
+                        hot.classList.add('visible');
+                        showOverlay();
+                    }
+                });
+                
+                hot.addEventListener('mousemove', (e) => {
+                    if (fsBtn?.innerText === '🗗') {
+                        e.stopPropagation();
+                        hot.classList.add('visible');
+                        showOverlay();
+                    }
+                });
+                
+                hot.addEventListener('mouseleave', () => {
+                    logState('Mouse left hot zone');
+                    hot.classList.remove('visible');
+                });
+                
+                // Make sure the hot zone is always on top
+                hot.style.zIndex = '10000';
+            }
+        </script>
+</body>
+
+</html>

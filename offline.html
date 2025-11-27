@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Offline — Broadcom Support</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background: #f5f7fa;
+        }
+
+        .card {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+            max-width: 520px;
+            text-align: center;
+        }
+
+        button {
+            background: #0072c6;
+            color: white;
+            border: 0;
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        a {
+            color: #0072c6;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h2>You are offline</h2>
+        <p>We couldn't connect to <strong>support.broadcom.com</strong> right now. Check your network and try again.</p>
+        <p>
+            <button id="retry">Retry</button>
+            &nbsp; <a href="https://support.broadcom.com/" id="openExternal" target="_blank">Open in external
+                browser</a>
+        </p>
+        <p style="font-size:12px;color:#666;margin-top:10px;">If the problem persists, your network or site may be
+            blocking the app.</p>
+    </div>
+
+    <script>
+        const retryBtn = document.getElementById('retry');
+        retryBtn.addEventListener('click', () => {
+            if (window.electronAPI && window.electronAPI.retry) {
+                window.electronAPI.retry();
+            } else {
+                // Fallback: try to open the site in a new tab
+                window.open('https://support.broadcom.com/', '_blank');
+            }
+        });
+    </script>
+</body>
+
+</html>
