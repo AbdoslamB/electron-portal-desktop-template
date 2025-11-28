@@ -18,7 +18,7 @@ An Electron-based desktop application template focused on simplicity and rapid p
    ```
 2. Run the app in development
    ```powershell
-   npm start
+   npm run dev
    ```
 3. Customize the embedded sites
    - Open `main.js`
@@ -43,4 +43,5 @@ This repository is distributed under the [MIT License](LICENSE). See the `LICENS
 ---
 
 Use this template as a starting point: fork it, change the URLs, restyle the titlebar, and layer in your own preload APIs or native integrations as needed.
+
 
