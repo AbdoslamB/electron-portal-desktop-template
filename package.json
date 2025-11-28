@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Desktop wrapper for example.edu built with Electron.",
   "main": "main.js",
-  "author": "Your Name",
+  "author": "Abdoslam",
   "license": "ISC",
   "scripts": {
     "predev": "node scripts/check-electron.js",
