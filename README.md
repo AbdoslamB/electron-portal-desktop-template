@@ -1,3 +1,7 @@
+<p align="right">
+<a href="https://github.com/AbdoslamB/electron-portal-desktop-template/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/static/v1?label=license&message=MIT&color=d08aff" alt="License"></a>
+</p>
+
 # Example Portal Desktop Template
 
 An Electron-based desktop application template focused on simplicity and rapid prototyping. It embeds a remote experience inside a frameless window, giving you a ready-to-extend foundation for your own Electron projects.
@@ -39,3 +43,4 @@ This repository is distributed under the [MIT License](LICENSE). See the `LICENS
 ---
 
 Use this template as a starting point: fork it, change the URLs, restyle the titlebar, and layer in your own preload APIs or native integrations as needed.
+
