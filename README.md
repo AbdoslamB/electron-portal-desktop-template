@@ -1,4 +1,7 @@
-<p align="right">
+
+<img  style="width: 100%; height: auto;" width="944" height="130" alt="Elo" src="https://github.com/user-attachments/assets/14e75c51-3368-43a4-b29b-360800180a52" />
+
+<p style="margin-top: 30px;" , align="right"  >
 <a href="https://github.com/AbdoslamB/electron-portal-desktop-template/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/static/v1?label=license&message=MIT&color=d08aff" alt="License"></a>
 </p>
 
@@ -43,5 +46,6 @@ This repository is distributed under the [MIT License](LICENSE). See the `LICENS
 ---
 
 Use this template as a starting point: fork it, change the URLs, restyle the titlebar, and layer in your own preload APIs or native integrations as needed.
+
 
 
