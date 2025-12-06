@@ -44,8 +44,8 @@ This uses `electron-builder` to create both a portable `win-unpacked` folder and
 This repository is distributed under the [MIT License](LICENSE). See the `LICENSE` file for the full text.
 
 ---
-
 Use this template as a starting point: fork it, change the URLs, restyle the titlebar, and layer in your own preload APIs or native integrations as needed.
+
 
 
 
